@@ -69,6 +69,29 @@ class MyPortfolio:
         """
         TODO: Complete Task 4 Below
         """
+        # df_returns = self.returns.copy()
+        # for date in df_returns.index:
+        #     # 取最近 30 天的報酬率平均
+        #     window = df_returns.loc[:date].tail(30)
+        #     momentum = window[assets].mean()
+
+        #     # 取報酬率前3高的資產
+        #     top_assets = momentum.sort_values(ascending=False).head(3).index
+
+        #     weights = pd.Series(0, index=assets)
+        #     weights[top_assets] = 1 / len(top_assets)
+
+        #     self.portfolio_weights.loc[date, assets] = weights
+        #
+        for date in self.returns.index:
+            thirtytwo = self.returns.loc[:date].tail(32)
+            pastreturn = thirtytwo[assets].sum()
+
+            topfour = pastreturn.sort_values(ascending=True).tail(4).index
+            weights = pd.Series(0, index=assets)
+            weights[topfour] = 1 / len(topfour)
+            self.portfolio_weights.loc[date, assets] = weights
+
 
         """
         TODO: Complete Task 4 Above

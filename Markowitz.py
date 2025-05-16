@@ -9,6 +9,7 @@ import quantstats as qs
 import gurobipy as gp
 import argparse
 import warnings
+import cvxpy as cp
 
 """
 Project Setup
@@ -61,7 +62,9 @@ class EqualWeightPortfolio:
         """
         TODO: Complete Task 1 Below
         """
-
+        for i in range(len(self.portfolio_weights)):
+            self.portfolio_weights.iloc[i][assets] = 1 / len(assets)
+        
         """
         TODO: Complete Task 1 Above
         """
@@ -112,13 +115,44 @@ class RiskParityPortfolio:
         """
         TODO: Complete Task 2 Below
         """
-
+        # for date in df_returns.index:
+        #     if date < df_returns.index[self.lookback]:
+        #         past_returns = df_returns.loc[:date]
+        #     else:
+        #         past_returns = df_returns.loc[:date].tail(self.lookback)
+        #         std = past_returns[assets].std()
+        #         weights = (1 / std) / (1 / std).sum()
+        #         self.portfolio_weights.loc[date, assets] = weights 
+        # for i in range(self.lookback + 1, len(df)):
+         # Risk Parity: Inverse volatility weighting
+        for i in range(self.lookback + 1, len(df)):
+            date = df.index[i]
+            # Get past 'lookback' days of returns for selected assets
+            past_returns = df_returns[assets].iloc[i - self.lookback: i]
+            # Calculate standard deviation (volatility) for each asset
+            std = past_returns.std(ddof=0)
+            # Calculate inverse volatility weights
+            inv_vol = 1 / std
+            weights = inv_vol / inv_vol.sum()
+            # Assign weights to the corresponding date and assets
+            self.portfolio_weights.loc[date, assets] = weights.values
+        
+            
         """
         TODO: Complete Task 2 Above
         """
 
         self.portfolio_weights.ffill(inplace=True)
         self.portfolio_weights.fillna(0, inplace=True)
+
+        # print("===== DEBUG SUMMARY =====")
+        # print("df_returns shape:", df_returns.shape)
+        # print("df_returns columns:", df_returns.columns.tolist())
+        # print("df_returns index[0]:", df_returns.index[0], "type:", type(df_returns.index[0]))
+        # print("df_returns dtypes:\n", df_returns.dtypes)
+        # print("df_returns.head():\n", df_returns.head())
+        # print("df_returns.tail():\n", df_returns.tail())
+
 
     def calculate_portfolio_returns(self):
         # Ensure weights are calculated
@@ -187,8 +221,9 @@ class MeanVariancePortfolio:
 
                 # Sample Code: Initialize Decision w and the Objective
                 # NOTE: You can modify the following code
-                w = model.addMVar(n, name="w", ub=1)
-                model.setObjective(w.sum(), gp.GRB.MAXIMIZE)
+                w = model.addMVar(n, name="w", lb=0, ub=1)
+                model.addConstr(w.sum() == 1, name="sumw")
+                model.setObjective(w.T @ mu - self.gamma * w.T @ Sigma @ w / 2, gp.GRB.MAXIMIZE)
 
                 """
                 TODO: Complete Task 3 Above
