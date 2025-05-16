@@ -6,4 +6,3 @@ quantstats==0.0.62
 gurobipy
 ipython
 argparse
-cvxpys
