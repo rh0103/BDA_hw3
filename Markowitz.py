@@ -9,7 +9,6 @@ import quantstats as qs
 import gurobipy as gp
 import argparse
 import warnings
-import cvxpy as cp
 
 """
 Project Setup
